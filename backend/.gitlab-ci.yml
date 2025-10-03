@@ -10,11 +10,12 @@ gradle-build:
   stage: build
   image: gradle:8.10.2-jdk17
   script:
-    - cd BankingBackend
+    - cd backend
     - gradle clean build -x test
   artifacts:
     paths:
-      - BankingBackend/build/libs/*.jar
+      - backend/build/libs/*.jar
+    expire_in: 1 hour
 
 # -------- Docker Build & Push --------
 docker-build:
@@ -22,8 +23,14 @@ docker-build:
   image: docker:cli
   services:
     - docker:dind
+  dependencies:
+    - gradle-build
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
+    - cd backend
     - docker build -t "$DOCKER_IMAGE_NAME" .
     - docker push "$DOCKER_IMAGE_NAME"
+  only:
+    - main
+    - develop
