@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  cassandra:
+    image: cassandra:4.1
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+    environment:
+      - CASSANDRA_CLUSTER_NAME=banking-cluster
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    healthcheck:
+      test: [ "CMD-SHELL", "cqlsh -e 'SHOW HOST'" ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks:
+      - banking-network
+
+  backend:
+    build: ./backend
+    container_name: banking-backend
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATA_CASSANDRA_CONTACT_POINTS: cassandra
+      SPRING_DATA_CASSANDRA_PORT: 9042
+      SPRING_DATA_CASSANDRA_KEYSPACE_NAME: banking_app
+      SPRING_DATA_CASSANDRA_LOCAL_DATACENTER: datacenter1
+      SPRING_DATA_CASSANDRA_SCHEMA_ACTION: create-if-not-exists
+    networks:
+      - banking-network
+
+# REQUIRED: Volumes section
+volumes:
+  cassandra_data:
+    driver: local
+
+# REQUIRED: Networks section
+networks:
+  banking-network:
+    driver: bridge

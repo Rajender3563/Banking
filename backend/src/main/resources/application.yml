@@ -1,0 +1,32 @@
+application:
+  security:
+    jwt:
+      secret-key: 4E635266556A586E3272357538782F413F4428472B4B6250655368566D597133
+      expiration: 3600000
+server:
+  port: 8080
+spring:
+  data:
+    cassandra:
+      pool:
+        core-size: 1
+  cassandra:
+    contact-points: cassandra
+    port: 9042
+    keyspace-name: banking_app
+    schema-action: CREATE_IF_NOT_EXISTS
+    request:
+      timeout: 10s
+    connection:
+      connect-timeout: 10s
+      init-query-timeout: 10s
+    local-datacenter: datacenter1
+    username: cassandra
+    password: cassandra
+
+logging:
+  level:
+    root: INFO
+    org.springframework.data.cassandra: DEBUG
+    com.datastax.oss.driver: DEBUG
+    org.engineering.backend: DEBUG
